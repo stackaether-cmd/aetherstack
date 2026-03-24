@@ -11,7 +11,7 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '../public')));
+app.use(express.static('public'));
 
 async function readProjects() {
   const { data, error } = await supabase.from('projects').select('*').order('id', { ascending: false });
@@ -110,11 +110,11 @@ app.delete('/api/projects/:id', adminAuth, async (req, res) => {
 });
 
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '../public/index.html'));
+  res.sendFile(path.resolve('public/index.html'));
 });
 
 app.get('/admin', (req, res) => {
-  res.sendFile(path.join(__dirname, '../public/admin.html'));
+  res.sendFile(path.resolve('public/admin.html'));
 });
 
 module.exports = app;
