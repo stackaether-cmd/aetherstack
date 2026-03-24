@@ -27,7 +27,13 @@ async function readSubmissions() {
 
 async function saveSubmission(data) {
   const { error } = await supabase.from('submissions').insert([
-    { id: Date.now(), ...data, date: new Date().toISOString() }
+    { 
+      id: Date.now(), 
+      name: data.name, 
+      email: data.email, 
+      budget: data.budget, 
+      message: data.message 
+    }
   ]);
   if (error) console.error('Supabase error:', error);
 }
@@ -53,15 +59,15 @@ app.post('/api/contact', async (req, res) => {
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: process.env.EMAIL_USER,
-      subject: `New Proposal from ${name}`,
-      html: `
+      subject: \New Proposal from \\,
+      html: \
         <h2>New Contact Submission</h2>
-        <p><b>Name:</b> ${name}</p>
-        <p><b>Email:</b> ${email}</p>
-        <p><b>Project Type:</b> ${projectType}</p>
-        <p><b>Budget:</b> ${budget}</p>
-        <p><b>Message:</b><br>${message}</p>
-      `
+        <p><b>Name:</b> \</p>
+        <p><b>Email:</b> \</p>
+        <p><b>Project Type:</b> \</p>
+        <p><b>Budget:</b> \</p>
+        <p><b>Message:</b><br>\</p>
+      \
     });
   } catch (e) {
     console.error('Email error:', e.message);
@@ -76,7 +82,7 @@ app.get('/api/submissions', adminAuth, async (req, res) => {
 
 function adminAuth(req, res, next) {
   const secret = req.query.secret || req.body.secret;
-  if (secret !== process.env.ADMIN_SECRET) return res.status(401).json({ error: 'Unauthorized' });
+  if (secret !== process.env.ADMIN_SECRET) return res.status(401).json({ error: 'Unauthorized' });    
   next();
 }
 
@@ -85,11 +91,11 @@ app.get('/api/projects', async (req, res) => res.json(await readProjects()));
 app.post('/api/projects', adminAuth, async (req, res) => {
   const { title, description, tags, imageUrl, link } = req.body;
   if (!title || !description) return res.status(400).json({ error: 'Title and description are required.' });
-  
+
   const { data, error } = await supabase.from('projects').insert([
     { id: Date.now(), title, description, tags: tags || [], imageUrl: imageUrl || '', link: link || '' }
   ]).select();
-  
+
   if (error) return res.status(400).json({ error: error.message });
   res.json(data[0]);
 });
@@ -99,7 +105,7 @@ app.put('/api/projects/:id', adminAuth, async (req, res) => {
     .update({ ...req.body, id: Number(req.params.id) })
     .eq('id', Number(req.params.id))
     .select();
-  
+
   if (error || !data?.length) return res.status(404).json({ error: 'Not found.' });
   res.json(data[0]);
 });
