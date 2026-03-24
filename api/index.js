@@ -31,6 +31,7 @@ async function saveSubmission(data) {
       id: Date.now(), 
       name: data.name, 
       email: data.email, 
+      project_type: data.projectType, 
       budget: data.budget, 
       message: data.message 
     }
