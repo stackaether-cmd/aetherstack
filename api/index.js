@@ -26,7 +26,6 @@ async function readSubmissions() {
 }
 
 async function saveSubmission(data) {
-  // Only sending confirmed columns (name, email, budget, message)
   const { error } = await supabase.from('submissions').insert([
     { 
       id: Date.now(), 
@@ -47,6 +46,15 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+// Verify transporter on startup
+transporter.verify(function (error, success) {
+  if (error) {
+    console.error('Nodemailer verification failed:', error.message);
+  } else {
+    console.log('Nodemailer is ready to take messages');
+  }
+});
+
 app.post('/api/contact', async (req, res) => {
   const { name, email, projectType, budget, message } = req.body;
 
@@ -57,21 +65,28 @@ app.post('/api/contact', async (req, res) => {
   await saveSubmission({ name, email, projectType, budget, message });
 
   try {
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
+    const info = await transporter.sendMail({
+      from: `"Aetherstack" <${process.env.EMAIL_USER}>`,
       to: process.env.EMAIL_USER,
-      subject: `New Proposal from ${name}`,
+      subject: `?? New Proposal from ${name}`,
       html: `
-        <h2>New Contact Submission</h2>
-        <p><b>Name:</b> ${name}</p>
-        <p><b>Email:</b> ${email}</p>
-        <p><b>Project Type:</b> ${projectType}</p>
-        <p><b>Budget:</b> ${budget}</p>
-        <p><b>Message:</b><br>${message}</p>
+        <div style="font-family: sans-serif; padding: 20px; color: #333;">
+          <h2 style="color: #ff6b4a;">New Contact Submission</h2>
+          <hr style="border: 0; border-top: 1px solid #eee;" />
+          <p><b>Name:</b> ${name}</p>
+          <p><b>Email:</b> ${email}</p>
+          <p><b>Project Type:</b> ${projectType}</p>
+          <p><b>Budget:</b> ${budget}</p>
+          <p style="background: #f9f9f9; padding: 15px; border-radius: 8px;"><b>Message:</b><br>${message}</p>
+        </div>
       `
     });
+    console.log('Email sent successfully:', info.messageId);
   } catch (e) {
-    console.error('Email error:', e.message);
+    console.error('EMAIL FAILED:', e.message);
+    if (e.code === 'EAUTH') {
+      console.error('Email authentication failed. Check your EMAIL_PASS app password.');
+    }
   }
 
   res.json({ success: true, message: 'Proposal received!' });
